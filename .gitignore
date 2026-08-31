@@ -1,0 +1,45 @@
+# Node / Vite
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Environment and local configuration
+.env
+.env.*
+!.env.example
+*.local
+
+# Tauri / Rust build output
+src-tauri/target/
+src-tauri/gen/
+target/
+*.pdb
+*.dSYM/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Operating systems
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary analysis files
+.tmp-*/
+.tmp-rate-analysis/
+tmp/
+temp/
+
+# Private local resources (rate sheets, reference files and private test data)
+/local-resources/

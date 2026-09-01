@@ -252,7 +252,7 @@ async function exportWorkbook() {
         </div>
       </div>
 
-      <div class="table-scroll">
+      <div v-if="rows.length" class="table-scroll">
         <table>
           <thead>
             <tr>
@@ -308,6 +308,22 @@ async function exportWorkbook() {
             </tr>
           </tbody>
         </table>
+      </div>
+      <div v-else class="batch-empty-state">
+        <div class="batch-empty-icon" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <div>
+          <h3>还没有报价结果</h3>
+          <p>在上方分别粘贴五列数据，然后点击“生成批量报价”。</p>
+        </div>
+        <div class="batch-empty-steps" aria-label="批量报价操作步骤">
+          <span><b>1</b> 按列粘贴</span>
+          <i></i>
+          <span><b>2</b> 检查行数</span>
+          <i></i>
+          <span><b>3</b> 生成结果</span>
+        </div>
       </div>
     </article>
   </section>

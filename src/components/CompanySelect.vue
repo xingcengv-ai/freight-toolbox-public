@@ -5,6 +5,7 @@ import type { CompanyProfile } from '../types'
 const props = defineProps<{
   companies: CompanyProfile[]
   modelValue: string
+  summary?: string
 }>()
 
 const emit = defineEmits<{
@@ -80,7 +81,10 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
       @keydown.up.prevent="open ? moveHighlight(-1) : toggle()"
       @keydown.esc="close"
     >
-      <span>{{ selectedCompany?.name || '请选择公司' }}</span>
+      <span class="company-select-trigger-copy">
+        <small>当前报价公司</small>
+        <b>{{ selectedCompany?.name || '请选择公司' }}</b>
+      </span>
       <svg class="company-select-arrow" viewBox="0 0 20 20" aria-hidden="true">
         <path d="m6 8 4 4 4-4" />
       </svg>
@@ -125,6 +129,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocumentPoin
         </button>
         <p v-if="!filteredCompanies.length" class="company-select-empty">没有找到“{{ keyword }}”</p>
       </div>
+      <p v-if="summary" class="company-select-summary">{{ summary }}</p>
     </div>
   </div>
 </template>

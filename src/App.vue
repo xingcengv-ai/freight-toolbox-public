@@ -22,6 +22,11 @@ const dataset = computed(() => activeDataset(selectedCompany.value))
 const importedTime = computed(() => dataset.value ? new Date(dataset.value.importedAt).toLocaleString('zh-CN') : '')
 const uniqueDestinations = computed(() => new Set(dataset.value?.rates.flatMap((rate) => rate.destinationCodes) ?? []).size)
 const uniqueServices = computed(() => new Set(dataset.value?.rates.map((rate) => rate.serviceName) ?? []).size)
+const companySelectSummary = computed(() => [
+  parserLabel(selectedCompany.value.parserId),
+  selectedCompany.value.owner ? `负责人：${selectedCompany.value.owner}` : '',
+  `${selectedCompany.value.datasets.length} 个报价版本`,
+].filter(Boolean).join(' · '))
 
 function selectCompany(companyId: string) {
   companyStore.value.activeCompanyId = companyId
@@ -95,36 +100,29 @@ async function onFileChange(event: Event) {
 
 <template>
   <main class="app-shell">
-    <header class="topbar">
-      <div class="brand-mark">价</div>
-      <div>
-        <p class="eyebrow">FREIGHT RATE DESK</p>
-        <h1>海运报价查询系统</h1>
+    <header class="topbar panel">
+      <div class="brand-area">
+        <div class="brand-mark">价</div>
+        <div class="brand-copy">
+          <p class="eyebrow">FREIGHT RATE DESK</p>
+          <h1>海运报价查询系统</h1>
+        </div>
+        <span class="prototype-tag">测试版</span>
       </div>
-      <span class="prototype-tag">测试版</span>
-    </header>
-
-    <section class="company-bar panel">
-      <div class="company-field">
-        <span id="current-company-label">当前报价公司</span>
+      <nav class="view-tabs" aria-label="工作模式">
+        <button :class="{ active: activeView === 'single' }" @click="activeView = 'single'">单票查询</button>
+        <button :class="{ active: activeView === 'batch' }" @click="activeView = 'batch'">批量报价</button>
+        <button :class="{ active: activeView === 'companies' }" @click="activeView = 'companies'">公司管理</button>
+      </nav>
+      <div class="topbar-company">
         <CompanySelect
           :companies="companyStore.companies"
           :model-value="companyStore.activeCompanyId"
+          :summary="companySelectSummary"
           @update:model-value="selectCompany"
         />
       </div>
-      <div class="company-meta">
-        <span>解析格式</span><b>{{ parserLabel(selectedCompany.parserId) }}</b>
-        <small>{{ selectedCompany.owner ? `负责人：${selectedCompany.owner} · ` : '' }}{{ selectedCompany.datasets.length }} 个报价版本</small>
-      </div>
-      <button class="new-company-button" type="button" @click="activeView = 'companies'">管理公司</button>
-    </section>
-
-    <nav class="view-tabs" aria-label="报价方式">
-      <button :class="{ active: activeView === 'single' }" @click="activeView = 'single'">单票查询</button>
-      <button :class="{ active: activeView === 'batch' }" @click="activeView = 'batch'">批量报价</button>
-      <button :class="{ active: activeView === 'companies' }" @click="activeView = 'companies'">公司管理</button>
-    </nav>
+    </header>
 
     <template v-if="activeView === 'single'">
     <section class="hero-grid">

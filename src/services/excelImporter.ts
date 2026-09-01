@@ -179,6 +179,8 @@ export async function importRateWorkbook(file: File): Promise<RateDataset> {
       aliases: ['美东美森纽约卡派（包）', '美东美森纽约卡派包', '美东美森纽约卡派'] },
     { sheetName: '美国海运-美东FBA卡派系列', serviceCell: 'G8', priceColumn: 6, startRow: 10,
       aliases: ['美东快船海卡纽约卡派（包）', '美东快船海卡纽约卡派包', '美东快船海卡纽约卡派'] },
+    { sheetName: '美国海运-美东FBA卡派系列', serviceCell: 'S8', priceColumn: 18, startRow: 10,
+      aliases: ['美东快船海铁纽约卡派（包）', '美东快船海铁纽约卡派包', '美东快船海铁纽约卡派'] },
     { sheetName: '美国海运-美东FBA卡派系列', serviceCell: 'K8', priceColumn: 10, startRow: 10,
       aliases: ['美东普船限时达纽约卡派（包）', '美东普船限时达纽约卡派包', '美东普船限时达纽约卡派'] },
     { sheetName: '美国海运-美东FBA卡派系列', serviceCell: 'V8', priceColumn: 21, startRow: 10,
@@ -206,6 +208,55 @@ export async function importRateWorkbook(file: File): Promise<RateDataset> {
         transitTime: text(sourceRows[rowIndex]?.[config.priceColumn + 2]),
       })
     }
+  }
+
+  const eastCommercialSheetName = '美国海运-美东商私卡派系列'
+  const eastCommercialSheet = workbook.Sheets[eastCommercialSheetName]
+  if (eastCommercialSheet) {
+    const eastCommercialRows = XLSX.utils.sheet_to_json<unknown[]>(eastCommercialSheet, { header: 1, raw: true, defval: null })
+    for (const serviceColumn of [4, 11, 18, 25, 32, 39, 46]) {
+      const serviceName = text(eastCommercialRows[7]?.[serviceColumn])
+      if (!serviceName) continue
+      for (let rowIndex = 10; rowIndex < eastCommercialRows.length; rowIndex += 1) {
+        const destination = text(eastCommercialRows[rowIndex]?.[3]).toUpperCase()
+        const postalCode = text(eastCommercialRows[rowIndex]?.[2]).toUpperCase()
+        if (!destination) continue
+        const walmartCode = destination.startsWith('沃尔玛') ? destination.slice(3) : ''
+        const destinationCodes = Array.from(new Set([
+          destination,
+          postalCode,
+          walmartCode,
+          walmartCode ? `WM-${walmartCode}` : '',
+        ].filter(Boolean)))
+
+        for (const band of [
+          { column: serviceColumn, min: 50, max: 1499 },
+          { column: serviceColumn + 1, min: 1500, max: 2999 },
+          { column: serviceColumn + 2, min: 3000, max: undefined },
+        ]) {
+          const price = number(eastCommercialRows[rowIndex]?.[band.column])
+          if (price == null) continue
+          addSimpleKgRate({
+            serviceName,
+            serviceAliases: aliases(serviceName),
+            destinationCodes,
+            minWeightKg: band.min,
+            maxWeightKg: band.max,
+            unitPrice: price,
+            sheetName: eastCommercialSheetName,
+            cells: [
+              XLSX.utils.encode_cell({ r: 7, c: serviceColumn }),
+              XLSX.utils.encode_cell({ r: 9, c: band.column }),
+              XLSX.utils.encode_cell({ r: rowIndex, c: 3 }),
+              XLSX.utils.encode_cell({ r: rowIndex, c: band.column }),
+            ],
+            transitTime: text(eastCommercialRows[rowIndex]?.[serviceColumn + 6]),
+          })
+        }
+      }
+    }
+  } else {
+    warnings.push(`缺少 Sheet：${eastCommercialSheetName}`)
   }
 
   const commercialSheetName = '美国海运-商私卡快递派系列'
